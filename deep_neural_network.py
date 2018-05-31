@@ -14,6 +14,18 @@ X_test = X_test.T
 Y_train = Y_train.reshape(1, Y_train.shape[0])
 Y_test = Y_test.reshape(1, Y_test.shape[0])
 
+def plot_data(X, Y):
+    """
+    Plots the the planar dataset
+    
+    Arguments:
+    X -- list of features/ data points
+    Y -- list of labels corresponding to features/data points
+    
+    Returns: None
+    """
+    plt.scatter(X[:, 0], X[:, 1], c=Y, cmap=plt.cm.Spectral)
+
 def sigmoid(x):
     return 1. / (1 + np.exp(-x))
 
@@ -285,7 +297,22 @@ def L_layer_model(X, Y, layers_dims, learning_rate=0.0075, num_iterations=3000, 
     
     return parameters
 
-def predict(X, y, parameters):
+def accuracy(y, y_hat):
+    """
+    Calculates the accuracy of the model.
+    
+    Arguments:
+    y -- actual labels
+    y_hat -- predicted labels
+    
+    Returns:
+    acc -- accuracy of the prediction in decimals
+    
+    """
+    acc = np.sum(y_hat == y)/float(y.shape[1])
+    return acc
+    
+def predict(X, parameters):
     """
     Predicts the results of a  L-layer neural network.
     
@@ -308,12 +335,33 @@ def predict(X, y, parameters):
             p[0,i] = 1
         else:
             p[0,i] = 0
-
-    print("Accuracy: {}".format(np.sum(p == y)/float(m)))
         
     return p
 
-layers_dims = [2, 50, 10, 1] 
-parameters = L_layer_model(X_train, Y_train, layers_dims, learning_rate=0.2, num_iterations=10000, print_cost=True)
-Y_pred_train = predict(X_train, Y_train, parameters)
-Y_pred_test = predict(X_test, Y_test, parameters)
+def plot_decision_boundary(pred_func, X, Y):
+    """
+    Plots the decision boundary over the planar dataset
+    
+    Arguments:
+    pred_func -- prediction function that takes one argument of list of features/data points
+    X -- list of features/ data points
+    Y -- list of labels corresponding to features/data points
+    
+    Returns: None
+    """
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    h = 0.01
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
+
+layers_dims = [2, 40, 30, 1] 
+parameters = L_layer_model(X_train, Y_train, layers_dims, learning_rate=0.2, num_iterations=8500, print_cost=True)
+Y_pred_train = predict(X_train, parameters)
+Y_pred_test = predict(X_test, parameters)
+print('Training Accuracy: {}'.format(accuracy(Y_train, Y_pred_train)))
+print('Test Accuracy: {}'.format(accuracy(Y_test, Y_pred_test)))
+plot_decision_boundary(lambda x: predict(x.T, parameters), x, y)
